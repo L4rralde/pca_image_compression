@@ -16,6 +16,8 @@ def to_pgm(fname: str, test: bool = False) -> None:
         return
     pgm_path = f"{os.path.splitext(fname)[0]}.pgm"
     img = cv2.imread(fname)
+    if img is None:
+        return
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if not test:
         cv2.imwrite(pgm_path, gray_img)
