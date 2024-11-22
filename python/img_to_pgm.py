@@ -11,13 +11,14 @@ import argparse
 import cv2
 
 
-def to_pgm(fname: str) -> None:
+def to_pgm(fname: str, test: bool = False) -> None:
     if not os.path.exists(fname):
         return
     pgm_path = f"{os.path.splitext(fname)[0]}.pgm"
     img = cv2.imread(fname)
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    cv2.imwrite(pgm_path, gray_img)
+    if not test:
+        cv2.imwrite(pgm_path, gray_img)
 
 
 def main(args: argparse.ArgumentParser):
