@@ -2,6 +2,8 @@
 #include "pcaimg.h"
 #include <stdexcept>
 #include <iostream>
+#include <cstdlib>
+#include "../matrices/matrices.h"
 
 double mean(Pgm_Img& img){
     double acc;
@@ -152,4 +154,72 @@ std::vector< std::vector<double> > cov(
         }
     }
     return cov_mat;
+}
+
+Eigen::Eigen() {};
+
+Eigen::Eigen(std::vector< std::vector<double> >& matrix){
+    _matrix = &matrix;
+    if(_matrix->size() != _matrix->at(0).size())
+        throw std::invalid_argument("Matrix miust be squared");
+    int n = _matrix->size();
+    eigen_values = std::vector<double> (n, 0.0);
+    eigen_vectors = std::vector< std::vector<double> > (
+        n, std::vector<double> (n, 0.0)
+    );
+}
+
+void Eigen::jacobi(){
+    int n = _matrix->size();
+    int n2 = n * n;
+
+    double *matrix = (double *) calloc(n2, sizeof(double));
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n; ++j)
+            matrix[i*n + j] = _matrix->at(i).at(j);
+    double *e_vals = (double *) calloc(n, sizeof(double));
+    double *e_vecs = (double *) calloc(n2, sizeof(double));
+    double *e_vecs_t = (double *) calloc(n2, sizeof(double));
+
+    std::cout << "Jacobi for " << n << std::endl;
+    jacobi_eigen(matrix, e_vecs, e_vals, e_vecs_t, n);
+    for(int i = 0; i < n; ++i){
+        eigen_values[i] = e_vals[i];
+        for(int j = 0;  j < n; ++j)
+            eigen_vectors[i][j] = e_vecs[i*n + j];
+    }
+
+    free(e_vals);
+    free(matrix);
+    free(e_vecs);
+    free(e_vecs_t);
+}
+
+void Eigen::power(int k){
+    int n = _matrix->size();
+    int n2 = n * n;
+    double tol = 0.000001;
+    int reps = 10000;
+    double *ls = (double *) calloc(k, sizeof(double));
+    double *matrix = (double *) calloc(n2, sizeof(double));
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n; ++j)
+            matrix[i*n + j] = _matrix->at(i).at(j);
+
+    double** vectors = potencia(matrix, n, k, reps, tol, ls, NULL);
+    eigen_values = std::vector<double> (k, 0.0);
+    eigen_vectors = std::vector< std::vector<double> > (
+        k, std::vector<double> (n, 0.0)
+    );
+    for(int i = 0; i < k; ++i)
+        eigen_values[i] = ls[i];
+    for(int i = 0; i < k; ++i)
+        for(int j = 0; j < n; ++j)
+            eigen_vectors[i][j] =  vectors[i][j];
+
+    free(matrix);
+    free(ls);
+    for(int i = 0; i < k; ++i)
+        free(vectors[i]);
+    free(vectors);
 }

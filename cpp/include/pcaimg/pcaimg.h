@@ -26,4 +26,17 @@ std::vector< std::vector<double> > cov(
     std::vector< std::vector<double> >& matrix
 );
 
+class Eigen{
+private:
+    std::vector< std::vector<double> >* _matrix;
+public:
+    std::vector<double> eigen_values;
+    std::vector< std::vector<double> > eigen_vectors;
+    Eigen();
+    Eigen(std::vector< std::vector<double> >& matrix);
+
+    void jacobi(); //Symmetric matrices only
+    void power(int k);
+};
+
 #endif
