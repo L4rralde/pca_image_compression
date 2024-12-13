@@ -75,3 +75,35 @@ std::vector<float> std_deviation(Pgm_Img& img, int axis){
     }
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
+
+Normalizer::Normalizer() {}
+
+Normalizer::Normalizer(Pgm_Img& img){
+    means = mean(img, 0);
+    stds = std_deviation(img, 0);
+}
+
+std::vector< std::vector<float> > Normalizer::normalize(Pgm_Img& img){
+    int rows = img.size();
+    int cols = img[0].size();
+    std::vector< std::vector<float> >  normalized (
+        rows, std::vector<float> (cols, 0.0)
+    );
+    for(int i = 0; i < rows; ++i)
+        for(int j = 0; j < cols; ++j)
+            normalized[i][j] = (img[i][j] - means[j])/stds[j];
+    
+    return normalized;
+}
+
+Pgm_Img Normalizer::denormalize(std::vector< std::vector<float> >& normalized){
+    int rows = normalized.size();
+    int cols = normalized[0].size();
+    Pgm_Img denormalized(
+        rows, std::vector<unsigned char> (cols, 0)
+    );
+    for(int i = 0; i < rows; ++i)
+        for(int j = 0; j < cols; ++j)
+            denormalized[i][j] =  normalized[i][j]*stds[j] + means[j];
+    return denormalized;
+}
