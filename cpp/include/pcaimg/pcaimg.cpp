@@ -1,6 +1,7 @@
 #include <math.h>
 #include "pcaimg.h"
 #include <stdexcept>
+#include <iostream>
 
 float mean(Pgm_Img& img){
     float acc;
@@ -14,6 +15,30 @@ float mean(Pgm_Img& img){
 }
 
 std::vector<float> mean(Pgm_Img& img, int axis){
+    int rows = img.size();
+    int cols = img[0].size();
+    if(axis == 0){
+        std::vector<float> means (cols, 0.0);
+        for(int j = 0; j < cols; ++j){
+            for(int i = 0; i < rows; ++i)
+                means[j] += img[i][j];
+            means[j] /= rows;
+        }
+        return means;
+    }
+    if(axis == 1){
+        std::vector<float> means (rows, 0.0);
+        for(int i = 0; i < rows; ++i){
+            for(int j = 0; j < cols; ++j)
+                means[i] += img[i][j];
+            means[i] /= cols;
+        }
+        return means;
+    }
+    throw std::invalid_argument("Axis must be either 0 or 1");
+}
+
+std::vector<float> mean(std::vector< std::vector<float> >& img, int axis){
     int rows = img.size();
     int cols = img[0].size();
     if(axis == 0){
@@ -106,4 +131,25 @@ Pgm_Img Normalizer::denormalize(std::vector< std::vector<float> >& normalized){
         for(int j = 0; j < cols; ++j)
             denormalized[i][j] =  normalized[i][j]*stds[j] + means[j];
     return denormalized;
+}
+
+std::vector< std::vector<float> > cov(
+    std::vector< std::vector<float> >& matrix
+){
+    int rows = matrix.size();
+    int cols = matrix[0].size();
+    std::vector<float> means = mean(matrix, 0);
+
+    std::vector< std::vector<float> > cov_mat(
+        cols, std::vector<float> (cols, 0.0)
+    );
+
+    for(int i = 0; i < cols; ++i){
+        for(int j = 0; j < cols; ++j){
+            for(int k = 0; k < rows; ++k)
+                cov_mat[i][j] += matrix[k][i] * matrix[k][j];
+            cov_mat[i][j] /= rows - 1;
+        }
+    }
+    return cov_mat;
 }
