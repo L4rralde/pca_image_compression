@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <iostream>
 
-float mean(Pgm_Img& img){
-    float acc;
+double mean(Pgm_Img& img){
+    double acc;
 
     int rows = img.size();
     int cols = img[0].size();
@@ -14,11 +14,11 @@ float mean(Pgm_Img& img){
     return acc/(rows * cols);
 }
 
-std::vector<float> mean(Pgm_Img& img, int axis){
+std::vector<double> mean(Pgm_Img& img, int axis){
     int rows = img.size();
     int cols = img[0].size();
     if(axis == 0){
-        std::vector<float> means (cols, 0.0);
+        std::vector<double> means (cols, 0.0);
         for(int j = 0; j < cols; ++j){
             for(int i = 0; i < rows; ++i)
                 means[j] += img[i][j];
@@ -27,7 +27,7 @@ std::vector<float> mean(Pgm_Img& img, int axis){
         return means;
     }
     if(axis == 1){
-        std::vector<float> means (rows, 0.0);
+        std::vector<double> means (rows, 0.0);
         for(int i = 0; i < rows; ++i){
             for(int j = 0; j < cols; ++j)
                 means[i] += img[i][j];
@@ -38,11 +38,11 @@ std::vector<float> mean(Pgm_Img& img, int axis){
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
 
-std::vector<float> mean(std::vector< std::vector<float> >& img, int axis){
+std::vector<double> mean(std::vector< std::vector<double> >& img, int axis){
     int rows = img.size();
     int cols = img[0].size();
     if(axis == 0){
-        std::vector<float> means (cols, 0.0);
+        std::vector<double> means (cols, 0.0);
         for(int j = 0; j < cols; ++j){
             for(int i = 0; i < rows; ++i)
                 means[j] += img[i][j];
@@ -51,7 +51,7 @@ std::vector<float> mean(std::vector< std::vector<float> >& img, int axis){
         return means;
     }
     if(axis == 1){
-        std::vector<float> means (rows, 0.0);
+        std::vector<double> means (rows, 0.0);
         for(int i = 0; i < rows; ++i){
             for(int j = 0; j < cols; ++j)
                 means[i] += img[i][j];
@@ -62,13 +62,13 @@ std::vector<float> mean(std::vector< std::vector<float> >& img, int axis){
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
 
-float std_deviation(Pgm_Img& img){
-    float acc = 0;
+double std_deviation(Pgm_Img& img){
+    double acc = 0;
     int rows = img.size();
     int cols = img[0].size();
     int N = rows * cols;
 
-    float img_mean = mean(img);
+    double img_mean = mean(img);
     for(int i = 0; i < rows; ++i)
         for(int j = 0; j < cols; ++j)
             acc += (img[i][j] - img_mean) * (img[i][j] - img_mean);
@@ -76,12 +76,12 @@ float std_deviation(Pgm_Img& img){
     return sqrt(acc/N);            
 }
 
-std::vector<float> std_deviation(Pgm_Img& img, int axis){
+std::vector<double> std_deviation(Pgm_Img& img, int axis){
     int cols = img[0].size();
     int rows = img.size();
-    std::vector<float> means = mean(img, axis);
+    std::vector<double> means = mean(img, axis);
     if(axis == 0){
-        std::vector<float> stds (cols, 0.0);
+        std::vector<double> stds (cols, 0.0);
         for(int j = 0; j < cols; ++j){
             for(int i = 0; i < rows; ++i)
                 stds[j] += (img[i][j] - means[j]) * (img[i][j] - means[j]);
@@ -90,7 +90,7 @@ std::vector<float> std_deviation(Pgm_Img& img, int axis){
         return stds;
     }
     if(axis == 1){
-        std::vector<float> stds (rows, 0.0);
+        std::vector<double> stds (rows, 0.0);
         for(int i = 0; i < rows; ++i){
             for(int j = 0; j < cols; ++j)
                 stds[i] += (img[i][j] - means[i]) * (img[i][j] - means[i]);
@@ -108,11 +108,11 @@ Normalizer::Normalizer(Pgm_Img& img){
     stds = std_deviation(img, 0);
 }
 
-std::vector< std::vector<float> > Normalizer::normalize(Pgm_Img& img){
+std::vector< std::vector<double> > Normalizer::normalize(Pgm_Img& img){
     int rows = img.size();
     int cols = img[0].size();
-    std::vector< std::vector<float> >  normalized (
-        rows, std::vector<float> (cols, 0.0)
+    std::vector< std::vector<double> >  normalized (
+        rows, std::vector<double> (cols, 0.0)
     );
     for(int i = 0; i < rows; ++i)
         for(int j = 0; j < cols; ++j)
@@ -121,7 +121,7 @@ std::vector< std::vector<float> > Normalizer::normalize(Pgm_Img& img){
     return normalized;
 }
 
-Pgm_Img Normalizer::denormalize(std::vector< std::vector<float> >& normalized){
+Pgm_Img Normalizer::denormalize(std::vector< std::vector<double> >& normalized){
     int rows = normalized.size();
     int cols = normalized[0].size();
     Pgm_Img denormalized(
@@ -133,15 +133,15 @@ Pgm_Img Normalizer::denormalize(std::vector< std::vector<float> >& normalized){
     return denormalized;
 }
 
-std::vector< std::vector<float> > cov(
-    std::vector< std::vector<float> >& matrix
+std::vector< std::vector<double> > cov(
+    std::vector< std::vector<double> >& matrix
 ){
     int rows = matrix.size();
     int cols = matrix[0].size();
-    std::vector<float> means = mean(matrix, 0);
+    std::vector<double> means = mean(matrix, 0);
 
-    std::vector< std::vector<float> > cov_mat(
-        cols, std::vector<float> (cols, 0.0)
+    std::vector< std::vector<double> > cov_mat(
+        cols, std::vector<double> (cols, 0.0)
     );
 
     for(int i = 0; i < cols; ++i){

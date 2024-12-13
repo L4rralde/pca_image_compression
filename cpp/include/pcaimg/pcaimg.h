@@ -5,25 +5,25 @@
 
 typedef std::vector< std::vector<unsigned char> > Pgm_Img;
 
-float mean(Pgm_Img& img);
-std::vector<float> mean(Pgm_Img& img, int axis);
-std::vector<float> mean(std::vector< std::vector<float> >& img, int axis);
-float std_deviation(Pgm_Img& img);
-std::vector<float> std_deviation(Pgm_Img& img, int axis);
+double mean(Pgm_Img& img);
+std::vector<double> mean(Pgm_Img& img, int axis);
+std::vector<double> mean(std::vector< std::vector<double> >& img, int axis);
+double std_deviation(Pgm_Img& img);
+std::vector<double> std_deviation(Pgm_Img& img, int axis);
 
 class Normalizer{
 private:
-    std::vector<float> means;
-    std::vector<float> stds;
+    std::vector<double> means;
+    std::vector<double> stds;
 public:
     Normalizer();
     Normalizer(Pgm_Img& img);
-    std::vector< std::vector<float> > normalize(Pgm_Img& img);
-    Pgm_Img denormalize(std::vector< std::vector<float> >& normalized);
+    std::vector< std::vector<double> > normalize(Pgm_Img& img);
+    Pgm_Img denormalize(std::vector< std::vector<double> >& normalized);
 };
 
-std::vector< std::vector<float> > cov(
-    std::vector< std::vector<float> >& matrix
+std::vector< std::vector<double> > cov(
+    std::vector< std::vector<double> >& matrix
 );
 
 #endif
