@@ -13,9 +13,9 @@ std::vector<double> std_deviation(Pgm_Img& img, int axis);
 
 class Normalizer{
 private:
+public:
     std::vector<double> means;
     std::vector<double> stds;
-public:
     Normalizer();
     Normalizer(Pgm_Img& img);
     std::vector< std::vector<double> > normalize(Pgm_Img& img);
@@ -29,14 +29,23 @@ std::vector< std::vector<double> > cov(
 class Eigen{
 private:
     std::vector< std::vector<double> >* _matrix;
+    void power(int k);
 public:
     std::vector<double> eigen_values;
     std::vector< std::vector<double> > eigen_vectors;
     Eigen();
     Eigen(std::vector< std::vector<double> >& matrix);
+    Eigen(
+        std::vector< std::vector<double> >& matrix,
+        int k
+    );
+    std::vector< std::vector<double> > project(
+        std::vector< std::vector<double> > &mat
+    );
 
-    void jacobi(); //Symmetric matrices only
-    void power(int k);
+    std::vector< std::vector<double> > reconstruct(
+        std::vector< std::vector<double> > &projected
+    );
 };
 
 #endif

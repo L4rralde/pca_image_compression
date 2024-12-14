@@ -123,6 +123,13 @@ std::vector< std::vector<double> > Normalizer::normalize(Pgm_Img& img){
     return normalized;
 }
 
+unsigned char clip(double x){
+    if(x < 0)
+        return 0;
+    if(x > 255)
+        return 255;
+    return static_cast<unsigned char>(x);
+}
 Pgm_Img Normalizer::denormalize(std::vector< std::vector<double> >& normalized){
     int rows = normalized.size();
     int cols = normalized[0].size();
@@ -131,7 +138,7 @@ Pgm_Img Normalizer::denormalize(std::vector< std::vector<double> >& normalized){
     );
     for(int i = 0; i < rows; ++i)
         for(int j = 0; j < cols; ++j)
-            denormalized[i][j] =  normalized[i][j]*stds[j] + means[j];
+            denormalized[i][j] = clip(normalized[i][j]*stds[j] + means[j]);
     return denormalized;
 }
 
@@ -169,36 +176,23 @@ Eigen::Eigen(std::vector< std::vector<double> >& matrix){
     );
 }
 
-void Eigen::jacobi(){
+Eigen::Eigen(
+    std::vector< std::vector<double> >& matrix,
+    int k
+){
+    _matrix = &matrix;
+    if(_matrix->size() != _matrix->at(0).size())
+        throw std::invalid_argument("Matrix miust be squared");
     int n = _matrix->size();
-    int n2 = n * n;
-
-    double *matrix = (double *) calloc(n2, sizeof(double));
-    for(int i = 0; i < n; ++i)
-        for(int j = 0; j < n; ++j)
-            matrix[i*n + j] = _matrix->at(i).at(j);
-    double *e_vals = (double *) calloc(n, sizeof(double));
-    double *e_vecs = (double *) calloc(n2, sizeof(double));
-    double *e_vecs_t = (double *) calloc(n2, sizeof(double));
-
-    std::cout << "Jacobi for " << n << std::endl;
-    jacobi_eigen(matrix, e_vecs, e_vals, e_vecs_t, n);
-    for(int i = 0; i < n; ++i){
-        eigen_values[i] = e_vals[i];
-        for(int j = 0;  j < n; ++j)
-            eigen_vectors[i][j] = e_vecs[i*n + j];
-    }
-
-    free(e_vals);
-    free(matrix);
-    free(e_vecs);
-    free(e_vecs_t);
+    power(k);
 }
+
+//Cov matrices are symmetric, but not diagonally dominant.
 
 void Eigen::power(int k){
     int n = _matrix->size();
     int n2 = n * n;
-    double tol = 0.000001;
+    double tol = 0.00000001;
     int reps = 10000;
     double *ls = (double *) calloc(k, sizeof(double));
     double *matrix = (double *) calloc(n2, sizeof(double));
@@ -222,4 +216,53 @@ void Eigen::power(int k){
     for(int i = 0; i < k; ++i)
         free(vectors[i]);
     free(vectors);
+}
+
+std::vector< std::vector<double> > Eigen::project(
+    std::vector< std::vector<double> > &mat
+){
+    int rows = mat.size();
+    int cols = mat[0].size();
+    int k = eigen_vectors.size();
+    int n = eigen_vectors[0].size();
+    if(n != cols)
+        throw std::invalid_argument(
+            "Number of elements per eigenvector != num image cols"
+        );
+    
+    std::vector< std::vector<double> > coordinates(
+        rows, std::vector<double> (k, 0.0)
+    );
+
+    for(int row = 0; row < rows; ++row)
+        for(int eigvec = 0; eigvec < k; ++eigvec)
+            for(int col = 0; col < cols; ++col)
+                coordinates[row][eigvec] +=
+                    mat[row][col] * eigen_vectors[eigvec][col];
+    return coordinates; 
+}
+
+std::vector< std::vector<double> > Eigen::reconstruct(
+    std::vector< std::vector<double> > &projected
+){
+    int k = eigen_vectors.size();
+    int n = eigen_vectors[0].size();
+    int rows = projected.size();
+    int projected_cols = projected[0].size();
+    if(k != projected_cols)
+        throw std::invalid_argument(
+            "Number of eigenvectors != num of cols of projection"
+        );
+    
+    std::vector< std::vector<double> > reconstructed(
+        rows, std::vector<double> (n, 0.0)
+    );
+
+    for(int row = 0; row < rows; ++row)
+        for(int col = 0; col < n; ++col)
+            for(int eigvec = 0; eigvec < k; ++eigvec)
+                reconstructed[row][col] +=
+                    projected[row][eigvec] * eigen_vectors[eigvec][col];
+    
+    return reconstructed;    
 }
