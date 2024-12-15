@@ -6,7 +6,7 @@
 #include "../matrices/matrices.h"
 
 double mean(Pgm_Img& img){
-    double acc;
+    double acc = 0;
 
     int rows = img.size();
     int cols = img[0].size();
@@ -183,7 +183,6 @@ Eigen::Eigen(
     _matrix = &matrix;
     if(_matrix->size() != _matrix->at(0).size())
         throw std::invalid_argument("Matrix miust be squared");
-    int n = _matrix->size();
     power(k);
 }
 
@@ -192,7 +191,7 @@ Eigen::Eigen(
 void Eigen::power(int k){
     int n = _matrix->size();
     int n2 = n * n;
-    double tol = 0.00000001;
+    double tol = 0.000001;
     int reps = 10000;
     double *ls = (double *) calloc(k, sizeof(double));
     double *matrix = (double *) calloc(n2, sizeof(double));
