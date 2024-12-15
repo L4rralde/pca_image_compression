@@ -1,3 +1,9 @@
+/*
+Author: Emmanuel A. Larralde Ortiz
+Description:
+    Functions to compress images using Principal Component Analysis.
+*/
+
 #include <math.h>
 #include "pcaimg.h"
 #include <stdexcept>
@@ -5,6 +11,7 @@
 #include <cstdlib>
 #include "../matrices/matrices.h"
 
+//Overall mean of Img
 double mean(Pgm_Img& img){
     double acc = 0;
 
@@ -16,6 +23,7 @@ double mean(Pgm_Img& img){
     return acc/(rows * cols);
 }
 
+//img columns/rows means
 std::vector<double> mean(Pgm_Img& img, int axis){
     int rows = img.size();
     int cols = img[0].size();
@@ -40,6 +48,7 @@ std::vector<double> mean(Pgm_Img& img, int axis){
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
 
+//Matrix columns/rows means
 std::vector<double> mean(std::vector< std::vector<double> >& img, int axis){
     int rows = img.size();
     int cols = img[0].size();
@@ -64,6 +73,7 @@ std::vector<double> mean(std::vector< std::vector<double> >& img, int axis){
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
 
+//Overall std deviation of img.
 double std_deviation(Pgm_Img& img){
     double acc = 0;
     int rows = img.size();
@@ -78,6 +88,7 @@ double std_deviation(Pgm_Img& img){
     return sqrt(acc/N);            
 }
 
+//img cols/rows std deviations.
 std::vector<double> std_deviation(Pgm_Img& img, int axis){
     int cols = img[0].size();
     int rows = img.size();
@@ -103,13 +114,17 @@ std::vector<double> std_deviation(Pgm_Img& img, int axis){
     throw std::invalid_argument("Axis must be either 0 or 1");
 }
 
+//Null constructor of Normalizer. NOP.
 Normalizer::Normalizer() {}
 
+//Constructor from img of Normalizer.
+//takes the img columns means and std deviations.
 Normalizer::Normalizer(Pgm_Img& img){
     means = mean(img, 0);
     stds = std_deviation(img, 0);
 }
 
+//Normalizes the columns of img using class' mean and std deviation vectors.
 std::vector< std::vector<double> > Normalizer::normalize(Pgm_Img& img){
     int rows = img.size();
     int cols = img[0].size();
@@ -123,6 +138,7 @@ std::vector< std::vector<double> > Normalizer::normalize(Pgm_Img& img){
     return normalized;
 }
 
+//Ensures denormalized pixels don't overflow/underflow
 unsigned char clip(double x){
     if(x < 0)
         return 0;
@@ -130,6 +146,8 @@ unsigned char clip(double x){
         return 255;
     return static_cast<unsigned char>(x);
 }
+
+//Denormalizes a normalized matrix using mean and std deviation vectors.
 Pgm_Img Normalizer::denormalize(std::vector< std::vector<double> >& normalized){
     int rows = normalized.size();
     int cols = normalized[0].size();
@@ -142,6 +160,7 @@ Pgm_Img Normalizer::denormalize(std::vector< std::vector<double> >& normalized){
     return denormalized;
 }
 
+//Computes the covariance matrix of the cols of matrix.
 std::vector< std::vector<double> > cov(
     std::vector< std::vector<double> >& matrix
 ){
@@ -163,19 +182,23 @@ std::vector< std::vector<double> > cov(
     return cov_mat;
 }
 
+//Null constructor.
 Eigen::Eigen() {};
 
+//Constructor. Computes all eigen pairs from matrix.
 Eigen::Eigen(std::vector< std::vector<double> >& matrix){
     _matrix = &matrix;
     if(_matrix->size() != _matrix->at(0).size())
         throw std::invalid_argument("Matrix miust be squared");
     int n = _matrix->size();
+    //Future, compute all eigenpairs.
     eigen_values = std::vector<double> (n, 0.0);
     eigen_vectors = std::vector< std::vector<double> > (
         n, std::vector<double> (n, 0.0)
     );
 }
 
+//Constructor. Computes top k dominant eigenpairs of matrix.
 Eigen::Eigen(
     std::vector< std::vector<double> >& matrix,
     int k
@@ -186,8 +209,7 @@ Eigen::Eigen(
     power(k);
 }
 
-//Cov matrices are symmetric, but not diagonally dominant.
-
+//Power method interface.
 void Eigen::power(int k){
     int n = _matrix->size();
     int n2 = n * n;
@@ -217,6 +239,7 @@ void Eigen::power(int k){
     free(vectors);
 }
 
+//Projects mat columns to the orthonormal base of eigenvectors.
 std::vector< std::vector<double> > Eigen::project(
     std::vector< std::vector<double> > &mat
 ){
@@ -241,6 +264,7 @@ std::vector< std::vector<double> > Eigen::project(
     return coordinates; 
 }
 
+//Reconstructs a matrix from a projection using the orthonormal base of eigenvectors.
 std::vector< std::vector<double> > Eigen::reconstruct(
     std::vector< std::vector<double> > &projected
 ){

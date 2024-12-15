@@ -1,13 +1,20 @@
+/*
+Author: Emmanuel A. Larralde Ortiz
+Description:
+    Functions for lanczso image resampling.
+*/
 #include "lanczos.h"
 #include <math.h>
 #include <iostream>
 
+//sinc = sin(x)/x
 double sinc(double x){
     if(x == 0)
         return 1;
     return sin(x)/x;
 }
 
+//Saturation function. Used to repeat pixels at the contour.
 template <typename T>
 T clamp(T x, T min, T max){
     if(x < min)
@@ -17,6 +24,7 @@ T clamp(T x, T min, T max){
     return x;
 }
 
+//Interpolating function for lanczos resampling.
 double lanczos_window(double x, int a){
     if(x == 0)
         return 1;
@@ -25,6 +33,7 @@ double lanczos_window(double x, int a){
     return sinc(M_PI * x) * sinc(M_PI*x/a);
 }
 
+//Lanczos resampling.
 std::vector< std::vector<unsigned char> > lanczos_resize(
     std::vector< std::vector<unsigned char> >& img,
     int nrows,
