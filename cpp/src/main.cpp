@@ -16,8 +16,10 @@ using namespace std;
 
 int main(int argc, char **argv){
     //Args safeguard
-    if(argc < 3)
+    if(argc < 3){
+        cout << "main.o <src_img_path> <dst_img_path> [<k>]" << endl;
         return 0;
+    }
     //Agrs parsing
     string src_path(argv[1]); //Source image path
     string dst_path(argv[2]); //Destination image path
