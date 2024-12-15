@@ -4,3 +4,10 @@
 *.jpeg
 *.jpg
 __pycache__
+.ipynb_checkpoints
+.vscode
+*.txt
+*.log
+*.pdf
+output
+*.o
